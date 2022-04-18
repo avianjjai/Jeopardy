@@ -1,4 +1,5 @@
 import mysql.connector as connector
+from Table import Table
 
 class PersistentStorage:
     def __init__(self, host, user, password, database) -> None:
@@ -15,9 +16,14 @@ class PersistentStorage:
     def __del__(self):
         self.connection.close()
 
-    def executeQuery(self, query):
-        cursor = self.cursor.execute(query)
-        table = self.cursor.fetchall()
-        return table
+    def executeQuery(self, columns, tableName, condition='True'):
+        query = "SELECT " + ','.join(columns) + " FROM " + tableName + " WHERE " + condition
+        self.cursor.execute(query)
 
+        columns = [c[0] for c in self.cursor.description]
+        table = Table(columns)
         
+        records = self.cursor.fetchall()
+        table.insertAllRecords(records)
+        
+        return table
